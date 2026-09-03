@@ -235,6 +235,7 @@
     background-repeat:no-repeat;
     filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));
     transition:left .25s ease, top .25s ease, transform .2s ease, filter .15s ease;
+    z-index:10;
   }
   .piece.dragging{
     cursor:grabbing;
@@ -245,6 +246,8 @@
   .piece.placed{
     cursor:default;
     filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    z-index:1;
+    pointer-events:none;
   }
   .piece.in-range{
     filter:drop-shadow(0 0 7px var(--gold-bright)) drop-shadow(0 3px 6px rgba(0,0,0,0.5));
