@@ -333,23 +333,6 @@
     margin:10px 0 16px;
   }
 
-  .now-playing{
-    font-size:13.5px;
-    font-style:italic;
-    color:var(--ink-soft);
-    margin-bottom:8px;
-  }
-
-  .viz-canvas{
-    display:block;
-    width:100%;
-    max-width:520px;
-    height:120px;
-    margin:0 auto 22px;
-    border-radius:8px;
-    background:rgba(0,0,0,0.08);
-  }
-
   .result-actions{
     display:flex;
     justify-content:center;
@@ -357,10 +340,58 @@
     flex-wrap:wrap;
   }
 
+  /* ---------- MUSIC BAR (top of game screen) ---------- */
+  .music-bar{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    background:rgba(0,0,0,0.22);
+    border:1px solid var(--gold-line);
+    border-radius:12px;
+    padding:12px 18px;
+    margin-bottom:14px;
+  }
+
+  .music-bar-info{
+    flex:1 1 200px;
+    min-width:160px;
+  }
+
+  .now-playing{
+    font-size:13.5px;
+    font-style:italic;
+    color:#dcc294;
+    margin:0;
+  }
+
   .music-note{
-    margin-top:14px;
-    font-size:13px;
-    color:var(--ink-soft);
+    margin-top:4px;
+    font-size:12px;
+    color:#a98a5c;
+  }
+
+  .viz-canvas{
+    display:block;
+    flex:1 1 240px;
+    max-width:340px;
+    width:100%;
+    height:56px;
+    margin:0;
+    border-radius:8px;
+    background:rgba(0,0,0,0.18);
+  }
+
+  .btn-music{
+    flex:0 0 auto;
+    padding:9px 22px;
+    font-size:14px;
+  }
+
+  @media (max-width: 560px){
+    .music-bar{ justify-content:center; }
+    .music-bar-info{ text-align:center; flex-basis:100%; }
+    .viz-canvas{ max-width:100%; }
   }
 
   @media (max-width: 760px){
@@ -382,7 +413,7 @@
   <div class="wrap">
     <div class="ribbon">третье сентября уже наступило</div>
     <h1>А ты пазл-то<br>собрал?</h1>
-    <p class="sub">30 деталей, один портрет и часы, которые не врут. Собери картинку как можно быстрее — в конце сыграет главная песня осени.</p>
+    <p class="sub">3 сентября, один певец, один календарь и 30 деталей — собери картинку как можно быстрее.</p>
     <div class="cta">
       <button class="btn" id="startBtn">Собрать пазл</button>
       <span class="hint">Секундомер запускается с первым ходом</span>
@@ -392,6 +423,14 @@
 
 <section class="game-section">
   <div class="wrap-wide">
+    <div class="music-bar" id="musicBar">
+      <div class="music-bar-info">
+        <div class="now-playing" id="nowPlaying">Сейчас играет: Михаил Шуфутинский — «Третье сентября»</div>
+        <div class="music-note" id="musicNote"></div>
+      </div>
+      <canvas class="viz-canvas" id="vizCanvas" width="520" height="72"></canvas>
+      <button class="btn ghost btn-music" id="toggleMusicBtn">Пауза</button>
+    </div>
     <div class="stage">
       <div class="stage-top">
         <div class="stage-title">Перетаскивайте детали на пунктирную рамку — там должна собраться картинка</div>
@@ -413,7 +452,7 @@
 <div class="overlay" id="introOverlay">
   <div class="result-card">
     <h2>Прежде чем начать</h2>
-    <p class="intro-text"><b>Включите звук</b> на устройстве — в конце вас ждёт небольшой сюрприз. Собирайте картинку на время: секундомер стартует с первого перетащенного кусочка.</p>
+    <p class="intro-text"><b>Включите звук на устройстве и наденьте наушники</b> — вас будет ждать музыкальное сопровождение. Собирайте картинку на время: секундомер стартует с первого перетащенного кусочка.</p>
     <button class="btn" id="introBtn">Погнали</button>
   </div>
 </div>
@@ -423,17 +462,13 @@
     <div class="thumb-big"></div>
     <h2>Пазл собран!</h2>
     <div class="result-time" id="resultTime">00:00</div>
-    <div class="now-playing">Сейчас играет Михаил Шуфутинский — Третье сентября</div>
-    <canvas class="viz-canvas" id="vizCanvas" width="520" height="120"></canvas>
     <div class="result-actions">
       <button class="btn" id="playAgainBtn">Собрать заново</button>
-      <button class="btn ghost" id="toggleMusicBtn">Пауза</button>
     </div>
-    <div class="music-note" id="musicNote"></div>
   </div>
 </div>
 
-<audio id="song" src="./song.mp3" preload="auto" loop muted autoplay playsinline></audio>
+<audio id="song" src="./song.mp3" preload="auto" loop playsinline></audio>
 
 <script>
 (function(){
@@ -676,7 +711,7 @@
     if (solved || piece.state === 'placed') return;
     ev.preventDefault();
     startTimer();
-    unlockAudio();
+    if (song.paused){ attemptPlayMusic(); }
 
     var group = groupMembers[piece.groupId];
     var box = pieceBoxSize();
@@ -826,20 +861,10 @@
   }
 
   // ---------- audio ----------
-  // Playing muted from the very start is allowed by every browser without any
-  // user gesture. That means by the time the puzzle is solved, `song` is
-  // already actively playing — finishing is just a matter of unmuting it,
-  // which (unlike calling .play()) never needs a user gesture either. This
-  // sidesteps autoplay-policy issues entirely instead of routing audio
-  // through a Web Audio graph that can silently fail.
-  function unlockAudio(){
-    if (song.paused){
-      song.muted = true;
-      var p = song.play();
-      if (p && p.catch) p.catch(function(){ /* will retry on the next real gesture */ });
-    }
-  }
-
+  // Music starts the moment the intro overlay is dismissed — that click is a
+  // real user gesture, so .play() is allowed to succeed immediately and the
+  // track keeps playing in the background for the whole puzzle, straight
+  // through to the result screen.
   function roundBar(ctx, x, y, w, h, r){
     r = Math.min(r, w / 2, h);
     ctx.beginPath();
@@ -934,8 +959,7 @@
 
   document.getElementById('playAgainBtn').addEventListener('click', function(){
     overlay.classList.remove('show');
-    song.muted = true;
-    unlockAudio();
+    attemptPlayMusic();
     resetGame();
   });
 
@@ -947,7 +971,7 @@
 
   document.getElementById('introBtn').addEventListener('click', function(){
     introOverlay.classList.remove('show');
-    unlockAudio();
+    attemptPlayMusic();
   });
 
   function onSolved(){
@@ -955,7 +979,7 @@
     stopTimer();
     resultTime.textContent = formatTime(elapsed);
     overlay.classList.add('show');
-    attemptPlayMusic();
+    // music keeps playing uninterrupted — only the picture and the time are shown
   }
 
   function resetGame(){
