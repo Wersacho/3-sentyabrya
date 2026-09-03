@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Собери 3 сентября — пазл на время</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#241408;
+    --panel:#f4e9cf;
+    --ink:#3a2412;
+    --ink-soft:#6b4a29;
+    --gold:#c79a45;
+    --gold-bright:#e6c069;
+    --gold-line:rgba(199,154,69,0.45);
+    --brick:#8c3b2e;
+    --cream:#faf3e2;
+    --cell-scale: 1;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:
+      radial-gradient(ellipse at 20% -10%, #3a230f 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 10%, #2c1a0c 0%, transparent 50%),
+      var(--bg-deep);
+    color:var(--cream);
+    font-family:'PT Serif', Georgia, serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--gold-bright); color:var(--bg-deep); }
+
+  h1,h2,h3{
+    font-family:'Yeseva One', 'PT Serif', serif;
+    font-weight:400;
+    margin:0;
+    color:var(--cream);
+  }
+
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  .wrap-wide{
+    max-width:1800px;
+    margin:0 auto;
+    padding:0 20px;
+  }
+
+  .frame-corner{
+    position:fixed;
+    width:170px;
+    height:170px;
+    pointer-events:none;
+    opacity:0.35;
+    z-index:1;
+  }
+  .frame-corner svg{ width:100%; height:100%; }
+  .fc-tl{ top:0; left:0; }
+  .fc-tr{ top:0; right:0; transform:scaleX(-1); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:88px 0 56px;
+    text-align:center;
+    overflow:hidden;
+  }
+
+  .hero .ribbon{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    color:var(--gold-bright);
+    font-family:'PT Serif', serif;
+    font-style:italic;
+    font-size:17px;
+    letter-spacing:0.2px;
+    margin-bottom:22px;
+  }
+  .hero .ribbon::before,
+  .hero .ribbon::after{
+    content:"";
+    width:34px;
+    height:1px;
+    background:var(--gold-line);
+  }
+
+  .hero h1{
+    font-size:clamp(34px, 6vw, 62px);
+    line-height:1.12;
+    color:var(--gold-bright);
+    text-shadow:0 2px 0 rgba(0,0,0,0.25);
+  }
+
+  .hero p.sub{
+    max-width:560px;
+    margin:22px auto 0;
+    font-size:19px;
+    line-height:1.65;
+    color:#e9d9b8;
+  }
+
+  .hero .cta{
+    margin-top:38px;
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'PT Serif', serif;
+    font-size:18px;
+    padding:15px 38px;
+    border-radius:3px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#2a1706;
+    box-shadow:0 6px 0 #7c5a24, 0 10px 18px rgba(0,0,0,0.35);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #7c5a24, 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .btn.ghost{
+    background:transparent;
+    color:var(--gold-bright);
+    box-shadow:none;
+    border:1px solid var(--gold-line);
+    padding:12px 28px;
+    font-size:15px;
+  }
+  .btn.ghost:active{ transform:translateY(2px); box-shadow:none; }
+
+  .hero .hint{
+    font-size:14px;
+    color:#a98a5c;
+  }
+
+  /* ---------- GAME SECTION ---------- */
+  .game-section{
+    position:relative;
+    padding:14px 0 24px;
+  }
+
+  .stage{
+    background:linear-gradient(180deg, #2c1a0c, #201206);
+    border:1px solid var(--gold-line);
+    border-radius:14px;
+    padding:16px 18px 18px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .stage-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+
+  .stage-title{
+    font-size:15px;
+    color:#c9ac7c;
+    font-style:italic;
+    max-width:60%;
+  }
+
+  .timer{
+    font-family:'PT Serif', serif;
+    font-variant-numeric:tabular-nums;
+    font-size:30px;
+    color:var(--gold-bright);
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--gold-line);
+    border-radius:8px;
+    padding:6px 18px;
+    min-width:110px;
+    text-align:center;
+  }
+
+  .progress-line{
+    height:4px;
+    border-radius:2px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+    margin-bottom:12px;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--gold), var(--gold-bright));
+    transition:width .35s ease;
+  }
+
+  .canvas{
+    position:relative;
+    width:100%;
+    border-radius:10px;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 7px),
+      linear-gradient(180deg,#180d05,#0f0904);
+    border:1px solid var(--gold-line);
+    box-shadow:inset 0 0 40px rgba(0,0,0,0.6);
+    overflow:visible;
+  }
+
+  .target-outline{
+    position:absolute;
+    border:2px dashed rgba(230,192,105,0.4);
+    border-radius:6px;
+    background:rgba(255,255,255,0.02);
+    pointer-events:none;
+  }
+
+  .piece{
+    position:absolute;
+    top:0; left:0;
+    cursor:grab;
+    touch-action:none;
+    background-repeat:no-repeat;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));
+    transition:left .25s ease, top .25s ease, transform .2s ease, filter .15s ease;
+  }
+  .piece.dragging{
+    cursor:grabbing;
+    z-index:80;
+    transition:none;
+    filter:drop-shadow(0 12px 18px rgba(0,0,0,0.6));
+  }
+  .piece.placed{
+    cursor:default;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+  .piece.in-range{
+    filter:drop-shadow(0 0 7px var(--gold-bright)) drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+  }
+
+  .controls-row{
+    margin-top:14px;
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  /* ---------- OVERLAYS ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,8,3,0.86);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:20px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .4s ease;
+  }
+  .overlay.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .result-card{
+    background:linear-gradient(180deg, var(--cream), var(--panel));
+    color:var(--ink);
+    border-radius:12px;
+    max-width:680px;
+    width:100%;
+    text-align:center;
+    padding:40px 32px 32px;
+    position:relative;
+    box-shadow:0 30px 70px rgba(0,0,0,0.5);
+    transform:scale(0.92) translateY(10px);
+    transition:transform .4s cubic-bezier(.2,1.4,.4,1);
+    max-height:90vh;
+    overflow-y:auto;
+  }
+  .overlay.show .result-card{ transform:scale(1) translateY(0); }
+
+  .intro-text{
+    font-size:15.5px;
+    line-height:1.65;
+    color:var(--ink-soft);
+    margin:16px 0 26px;
+  }
+  .intro-text b{ color:var(--brick); }
+
+  .thumb-big{
+    width:100%;
+    max-width:620px;
+    aspect-ratio:2752/1536;
+    margin:0 auto 18px;
+    border-radius:8px;
+    border:3px solid var(--gold);
+    background-image:url('./puzzle-image.jpg');
+    background-size:cover;
+    background-position:center;
+    box-shadow:0 10px 24px rgba(0,0,0,0.3);
+  }
+
+  .result-card h2{
+    color:var(--ink);
+    font-size:26px;
+    margin-bottom:6px;
+  }
+
+  .result-time{
+    font-family:'PT Serif', serif;
+    font-variant-numeric:tabular-nums;
+    font-size:40px;
+    font-weight:700;
+    color:var(--brick);
+    margin:10px 0 16px;
+  }
+
+  .now-playing{
+    font-size:13.5px;
+    font-style:italic;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+
+  .viz-canvas{
+    display:block;
+    width:100%;
+    max-width:520px;
+    height:120px;
+    margin:0 auto 22px;
+    border-radius:8px;
+    background:rgba(0,0,0,0.08);
+  }
+
+  .result-actions{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .music-note{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width: 760px){
+    :root{ --cell-scale: 0.6; }
+    .stage{ padding:12px 10px 14px; }
+    .stage-title{ max-width:100%; }
+    .frame-corner{ width:70px; height:70px; }
+    .hero{ padding:64px 0 44px; }
+    .result-card{ padding:30px 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame-corner fc-tl"><svg viewBox="0 0 120 120"><path d="M4 4 C 40 4, 4 40, 4 4 M4 4 L4 60 M4 4 L60 4" stroke="#e6c069" stroke-width="1.4" fill="none"/><circle cx="4" cy="4" r="30" stroke="#e6c069" stroke-width="1" fill="none"/><circle cx="4" cy="4" r="50" stroke="#e6c069" stroke-width="0.6" fill="none"/></svg></div>
+<div class="frame-corner fc-tr"><svg viewBox="0 0 120 120"><path d="M4 4 C 40 4, 4 40, 4 4 M4 4 L4 60 M4 4 L60 4" stroke="#e6c069" stroke-width="1.4" fill="none"/><circle cx="4" cy="4" r="30" stroke="#e6c069" stroke-width="1" fill="none"/><circle cx="4" cy="4" r="50" stroke="#e6c069" stroke-width="0.6" fill="none"/></svg></div>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="ribbon">третье сентября уже наступило</div>
+    <h1>А ты пазл-то<br>собрал?</h1>
+    <p class="sub">30 деталей, один портрет и часы, которые не врут. Собери картинку как можно быстрее — в конце сыграет главная песня осени.</p>
+    <div class="cta">
+      <button class="btn" id="startBtn">Собрать пазл</button>
+      <span class="hint">Секундомер запускается с первым ходом</span>
+    </div>
+  </div>
+</section>
+
+<section class="game-section">
+  <div class="wrap-wide">
+    <div class="stage">
+      <div class="stage-top">
+        <div class="stage-title">Перетаскивайте детали на пунктирную рамку — там должна собраться картинка</div>
+        <div class="timer" id="timer">00:00</div>
+      </div>
+      <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="canvas" id="canvas">
+        <div class="target-outline" id="targetOutline"></div>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn ghost" id="shuffleBtn">Перемешать заново</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="overlay" id="introOverlay">
+  <div class="result-card">
+    <h2>Прежде чем начать</h2>
+    <p class="intro-text"><b>Включите звук</b> на устройстве — в конце вас ждёт небольшой сюрприз. Собирайте картинку на время: секундомер стартует с первого перетащенного кусочка.</p>
+    <button class="btn" id="introBtn">Погнали</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="result-card">
+    <div class="thumb-big"></div>
+    <h2>Пазл собран!</h2>
+    <div class="result-time" id="resultTime">00:00</div>
+    <div class="now-playing">Сейчас играет Михаил Шуфутинский — Третье сентября</div>
+    <canvas class="viz-canvas" id="vizCanvas" width="520" height="120"></canvas>
+    <div class="result-actions">
+      <button class="btn" id="playAgainBtn">Собрать заново</button>
+      <button class="btn ghost" id="toggleMusicBtn">Пауза</button>
+    </div>
+    <div class="music-note" id="musicNote"></div>
+  </div>
+</div>
+
+<audio id="song" src="./song.mp3" preload="auto" loop muted autoplay playsinline></audio>
+
+<script>
+(function(){
+  "use strict";
+
+  var COLS = 6, ROWS = 5, TOTAL = COLS * ROWS;
+  var IMAGE_ASPECT = 2752 / 1536;
+
+  var canvasEl = document.getElementById('canvas');
+  var targetOutlineEl = document.getElementById('targetOutline');
+  var timerEl = document.getElementById('timer');
+  var progressFill = document.getElementById('progressFill');
+  var overlay = document.getElementById('overlay');
+  var introOverlay = document.getElementById('introOverlay');
+  var resultTime = document.getElementById('resultTime');
+  var song = document.getElementById('song');
+  var musicNote = document.getElementById('musicNote');
+  var vizCanvas = document.getElementById('vizCanvas');
+  var vizCtx = vizCanvas.getContext('2d');
+
+  var pieces = [];
+  var groupMembers = {};
+
+  var cellW, cellH, tabSize, pad, boardWidth, boardHeight, canvasWidth, canvasHeight, boardLeft, boardTop;
+
+  var startTime = null;
+  var elapsed = 0;
+  var tickHandle = null;
+  var started = false;
+  var solved = false;
+
+  var vizRAF = null, vizBars = null, vizStart = null;
+
+  function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+  function formatTime(ms){
+    var totalSec = Math.floor(ms / 1000);
+    return pad2(Math.floor(totalSec / 60)) + ':' + pad2(totalSec % 60);
+  }
+
+  function tick(){
+    elapsed = Date.now() - startTime;
+    timerEl.textContent = formatTime(elapsed);
+  }
+  function startTimer(){
+    if (started) return;
+    started = true;
+    startTime = Date.now();
+    tickHandle = setInterval(tick, 250);
+  }
+  function stopTimer(){
+    if (tickHandle){ clearInterval(tickHandle); tickHandle = null; }
+  }
+
+  // ---------- jigsaw edge / path generation ----------
+  function buildEdges(){
+    var vSign = [], hSign = [];
+    for (var r = 0; r < ROWS; r++){
+      vSign.push([]);
+      for (var c = 0; c < COLS - 1; c++){ vSign[r].push(Math.random() < 0.5 ? 1 : -1); }
+    }
+    for (r = 0; r < ROWS - 1; r++){
+      hSign.push([]);
+      for (c = 0; c < COLS; c++){ hSign[r].push(Math.random() < 0.5 ? 1 : -1); }
+    }
+    var edgesById = [];
+    for (r = 0; r < ROWS; r++){
+      for (c = 0; c < COLS; c++){
+        var top = r === 0 ? 0 : -hSign[r - 1][c];
+        var right = c === COLS - 1 ? 0 : vSign[r][c];
+        var bottom = r === ROWS - 1 ? 0 : hSign[r][c];
+        var left = c === 0 ? 0 : -vSign[r][c - 1];
+        edgesById.push({ top: top, right: right, bottom: bottom, left: left });
+      }
+    }
+    return edgesById;
+  }
+
+  function edgeSegment(x1, y1, x2, y2, sign, size){
+    if (!sign) return 'L ' + x2.toFixed(2) + ' ' + y2.toFixed(2);
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var ux = dx / len, uy = dy / len;
+    var nx = uy, ny = -ux;
+    function pt(t, m){
+      var px = x1 + ux * t * len + nx * sign * size * m;
+      var py = y1 + uy * t * len + ny * sign * size * m;
+      return px.toFixed(2) + ' ' + py.toFixed(2);
+    }
+    return [
+      'L ' + pt(0.30, 0),
+      'C ' + pt(0.30, 0.85) + ' ' + pt(0.38, 1.55) + ' ' + pt(0.50, 1.55),
+      'C ' + pt(0.62, 1.55) + ' ' + pt(0.70, 0.85) + ' ' + pt(0.70, 0),
+      'L ' + pt(1.0, 0)
+    ].join(' ');
+  }
+
+  function buildPiecePath(edges, w, h, padding, size){
+    var x0 = padding, y0 = padding, x1 = padding + w, y1 = padding + h;
+    var d = 'M ' + x0 + ' ' + y0 + ' ';
+    d += edgeSegment(x0, y0, x1, y0, edges.top, size) + ' ';
+    d += edgeSegment(x1, y0, x1, y1, edges.right, size) + ' ';
+    d += edgeSegment(x1, y1, x0, y1, edges.bottom, size) + ' ';
+    d += edgeSegment(x0, y1, x0, y0, edges.left, size) + ' Z';
+    return d;
+  }
+
+  // ---------- geometry ----------
+  function computeGeometry(){
+    canvasWidth = canvasEl.clientWidth;
+    var isMobile = window.innerWidth <= 760;
+
+    // Measure the real height of everything else in the stage (title, timer,
+    // progress bar, controls, paddings) so the canvas always fits what's left
+    // of the viewport — no scrolling needed while assembling the puzzle.
+    var stageEl = document.querySelector('.stage');
+    var sectionEl = document.querySelector('.game-section');
+    var stageTopEl = document.querySelector('.stage-top');
+    var progressEl = document.querySelector('.progress-line');
+    var controlsEl = document.querySelector('.controls-row');
+
+    function outerH(el){
+      if (!el) return 0;
+      var cs = getComputedStyle(el);
+      return el.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+    }
+
+    var stageCS = getComputedStyle(stageEl);
+    var sectionCS = getComputedStyle(sectionEl);
+
+    var chrome = outerH(stageTopEl) + outerH(progressEl) + outerH(controlsEl) +
+      parseFloat(stageCS.paddingTop) + parseFloat(stageCS.paddingBottom) +
+      parseFloat(sectionCS.paddingTop) + parseFloat(sectionCS.paddingBottom);
+
+    var available = Math.max(340, window.innerHeight - chrome - 10);
+
+    var maxBoardW = isMobile ? Math.min(canvasWidth * 0.94, 620) : Math.min(canvasWidth * 0.74, 1500);
+    boardWidth = maxBoardW;
+    boardHeight = boardWidth / IMAGE_ASPECT;
+
+    // Leave room around the board for scattered pieces; shrink the board
+    // itself if the viewport is short so everything still fits without scroll.
+    var maxBoardH = available * 0.56;
+    if (boardHeight > maxBoardH){
+      boardHeight = maxBoardH;
+      boardWidth = boardHeight * IMAGE_ASPECT;
+    }
+
+    cellW = boardWidth / COLS;
+    cellH = boardHeight / ROWS;
+    tabSize = Math.min(cellW, cellH) * 0.16;
+    pad = tabSize * 1.8;
+
+    canvasHeight = available;
+    boardLeft = (canvasWidth - boardWidth) / 2;
+    boardTop = 26;
+
+    canvasEl.style.height = canvasHeight + 'px';
+    targetOutlineEl.style.left = boardLeft + 'px';
+    targetOutlineEl.style.top = boardTop + 'px';
+    targetOutlineEl.style.width = boardWidth + 'px';
+    targetOutlineEl.style.height = boardHeight + 'px';
+  }
+
+  function pieceBoxSize(){
+    return { w: cellW + 2 * pad, h: cellH + 2 * pad };
+  }
+
+  function layoutPieces(){
+    computeGeometry();
+    var box = pieceBoxSize();
+    var bgW = cellW * COLS, bgH = cellH * ROWS;
+
+    pieces.forEach(function(p){
+      var path = buildPiecePath(p.edges, cellW, cellH, pad, tabSize);
+      p.el.style.width = box.w + 'px';
+      p.el.style.height = box.h + 'px';
+      p.el.style.clipPath = "path('" + path + "')";
+      p.el.style.webkitClipPath = "path('" + path + "')";
+      p.el.style.backgroundSize = bgW + 'px ' + bgH + 'px';
+      p.el.style.backgroundPosition = (pad - p.col * cellW) + 'px ' + (pad - p.row * cellH) + 'px';
+
+      var left, top, rot = 0;
+      if (p.state === 'placed'){
+        left = boardLeft + p.col * cellW - pad;
+        top = boardTop + p.row * cellH - pad;
+      } else if (p.state === 'free'){
+        left = p.freeX; top = p.freeY;
+      } else {
+        left = p.fracX * Math.max(canvasWidth - box.w, 0);
+        top = p.fracY * Math.max(canvasHeight - box.h, 0);
+        rot = p.rot;
+      }
+      p.el.style.left = left + 'px';
+      p.el.style.top = top + 'px';
+      p.el.style.transform = 'rotate(' + rot + 'deg)';
+      p.el.classList.toggle('placed', p.state === 'placed');
+    });
+  }
+
+  function updateProgress(){
+    var correct = pieces.filter(function(p){ return p.state === 'placed'; }).length;
+    progressFill.style.width = Math.round((correct / TOTAL) * 100) + '%';
+    return correct;
+  }
+
+  function buildPieces(){
+    pieces.forEach(function(p){ if (p.el.parentNode) p.el.parentNode.removeChild(p.el); });
+    pieces = [];
+    groupMembers = {};
+    var edgesById = buildEdges();
+
+    for (var id = 0; id < TOTAL; id++){
+      var col = id % COLS, row = Math.floor(id / COLS);
+      var el = document.createElement('div');
+      el.className = 'piece';
+      el.style.backgroundImage = "url('./puzzle-image.jpg')";
+      canvasEl.appendChild(el);
+
+      var piece = {
+        id: id, col: col, row: row,
+        edges: edgesById[id],
+        el: el,
+        state: 'scattered',
+        groupId: id,
+        fracX: Math.random(),
+        fracY: Math.random(),
+        rot: Math.random() * 34 - 17,
+        freeX: 0, freeY: 0
+      };
+      pieces.push(piece);
+      groupMembers[id] = [piece];
+      el.addEventListener('pointerdown', (function(pc){ return function(ev){ onPointerDown(ev, pc); }; })(piece));
+    }
+  }
+
+  // ---------- drag ----------
+  var dragState = null;
+
+  function onPointerDown(ev, piece){
+    if (solved || piece.state === 'placed') return;
+    ev.preventDefault();
+    startTimer();
+    unlockAudio();
+
+    var group = groupMembers[piece.groupId];
+    var box = pieceBoxSize();
+
+    group.forEach(function(p){
+      if (p.state === 'scattered'){
+        p.freeX = p.fracX * Math.max(canvasWidth - box.w, 0);
+        p.freeY = p.fracY * Math.max(canvasHeight - box.h, 0);
+        p.state = 'free';
+        p.rot = 0;
+        p.el.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    var pieceRect = piece.el.getBoundingClientRect();
+    dragState = {
+      piece: piece,
+      group: group,
+      offsetX: ev.clientX - pieceRect.left,
+      offsetY: ev.clientY - pieceRect.top
+    };
+
+    group.forEach(function(p){ p.el.classList.add('dragging'); });
+    piece.el.setPointerCapture(ev.pointerId);
+    piece.el.addEventListener('pointermove', onPointerMove);
+    piece.el.addEventListener('pointerup', onPointerUp);
+    piece.el.addEventListener('pointercancel', onPointerUp);
+  }
+
+  function targetFor(piece){
+    return {
+      left: boardLeft + piece.col * cellW - pad,
+      top: boardTop + piece.row * cellH - pad
+    };
+  }
+
+  function onPointerMove(ev){
+    if (!dragState) return;
+    var piece = dragState.piece;
+    var canvasRect = canvasEl.getBoundingClientRect();
+    var newLeft = (ev.clientX - dragState.offsetX) - canvasRect.left;
+    var newTop = (ev.clientY - dragState.offsetY) - canvasRect.top;
+    var dx = newLeft - piece.freeX;
+    var dy = newTop - piece.freeY;
+
+    dragState.group.forEach(function(p){
+      var nx = p.freeX + dx, ny = p.freeY + dy;
+      p.freeX = nx;
+      p.freeY = ny;
+      p.el.style.left = nx + 'px';
+      p.el.style.top = ny + 'px';
+    });
+
+    var tgt = targetFor(piece);
+    var dist = Math.hypot(piece.freeX - tgt.left, piece.freeY - tgt.top);
+    var threshold = Math.min(cellW, cellH) * 0.35;
+    var inRange = dist < threshold;
+    dragState.group.forEach(function(p){ p.el.classList.toggle('in-range', inRange); });
+  }
+
+  // ---------- piece-to-piece connecting ----------
+  var NEIGHBOR_DIRS = [ {dc:1,dr:0}, {dc:-1,dr:0}, {dc:0,dr:1}, {dc:0,dr:-1} ];
+
+  function pieceAt(col, row){
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return null;
+    return pieces[row * COLS + col];
+  }
+
+  function placeGroupOnBoard(group){
+    group.forEach(function(p){
+      p.state = 'placed';
+      p.freeX = boardLeft + p.col * cellW - pad;
+      p.freeY = boardTop + p.row * cellH - pad;
+    });
+  }
+
+  // Looks for any neighboring piece (by original grid adjacency) belonging to
+  // a different group whose current position lines up correctly, and if so
+  // snaps the dragged group onto it and merges the two groups into one.
+  function snapAndMergeGroup(group){
+    var changed = true;
+    while (changed){
+      changed = false;
+      for (var i = 0; i < group.length && !changed; i++){
+        var p = group[i];
+        for (var d = 0; d < NEIGHBOR_DIRS.length; d++){
+          var dir = NEIGHBOR_DIRS[d];
+          var q = pieceAt(p.col + dir.dc, p.row + dir.dr);
+          if (!q || q.groupId === p.groupId) continue;
+          if (q.state !== 'free' && q.state !== 'placed') continue;
+
+          var expDX = dir.dc * cellW, expDY = dir.dr * cellH;
+          var actualDX = q.freeX - p.freeX, actualDY = q.freeY - p.freeY;
+          var snapThresh = Math.min(cellW, cellH) * 0.42;
+
+          if (Math.abs(actualDX - expDX) < snapThresh && Math.abs(actualDY - expDY) < snapThresh){
+            var corrX = (q.freeX - expDX) - p.freeX;
+            var corrY = (q.freeY - expDY) - p.freeY;
+            group.forEach(function(gp){ gp.freeX += corrX; gp.freeY += corrY; });
+
+            var targetGroupId = q.groupId;
+            var wasPlaced = (q.state === 'placed');
+            var mergedMembers = groupMembers[targetGroupId].concat(group);
+
+            group.forEach(function(gp){ gp.groupId = targetGroupId; });
+            groupMembers[targetGroupId] = mergedMembers;
+            group = mergedMembers;
+
+            if (wasPlaced) placeGroupOnBoard(group);
+
+            changed = true;
+            break;
+          }
+        }
+      }
+    }
+    return group;
+  }
+
+  function onPointerUp(ev){
+    if (!dragState) return;
+    var piece = dragState.piece;
+    var group = dragState.group;
+
+    piece.el.removeEventListener('pointermove', onPointerMove);
+    piece.el.removeEventListener('pointerup', onPointerUp);
+    piece.el.removeEventListener('pointercancel', onPointerUp);
+    group.forEach(function(p){
+      p.el.classList.remove('dragging');
+      p.el.classList.remove('in-range');
+    });
+
+    var tgt = targetFor(piece);
+    var dist = Math.hypot(piece.freeX - tgt.left, piece.freeY - tgt.top);
+    var threshold = Math.min(cellW, cellH) * 0.35;
+
+    if (dist < threshold){
+      placeGroupOnBoard(group);
+    } else {
+      snapAndMergeGroup(group);
+    }
+
+    dragState = null;
+    layoutPieces();
+    var correct = updateProgress();
+    if (correct === TOTAL){ onSolved(); }
+  }
+
+  // ---------- audio ----------
+  // Playing muted from the very start is allowed by every browser without any
+  // user gesture. That means by the time the puzzle is solved, `song` is
+  // already actively playing — finishing is just a matter of unmuting it,
+  // which (unlike calling .play()) never needs a user gesture either. This
+  // sidesteps autoplay-policy issues entirely instead of routing audio
+  // through a Web Audio graph that can silently fail.
+  function unlockAudio(){
+    if (song.paused){
+      song.muted = true;
+      var p = song.play();
+      if (p && p.catch) p.catch(function(){ /* will retry on the next real gesture */ });
+    }
+  }
+
+  function roundBar(ctx, x, y, w, h, r){
+    r = Math.min(r, w / 2, h);
+    ctx.beginPath();
+    ctx.moveTo(x, y + h);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function initVizBars(n){
+    vizBars = [];
+    for (var i = 0; i < n; i++){
+      vizBars.push({
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.8 + Math.random() * 1.6,
+        amp: 0.5 + Math.random() * 0.5
+      });
+    }
+  }
+
+  // A lively, always-animated equalizer. It isn't wired to real frequency
+  // data (which required a fragile Web Audio routing that could silently
+  // mute playback) — instead each bar has its own organic wobble, so it
+  // stays dynamic and musical-looking for as long as the track plays.
+  function drawViz(ts){
+    vizRAF = requestAnimationFrame(drawViz);
+    if (vizStart === null) vizStart = ts || performance.now();
+    var t = ((ts || performance.now()) - vizStart) / 1000;
+
+    var w = vizCanvas.width, h = vizCanvas.height;
+    vizCtx.clearRect(0, 0, w, h);
+
+    var n = 44;
+    if (!vizBars || vizBars.length !== n) initVizBars(n);
+
+    var barW = (w / n) * 0.62;
+    var gap = (w / n) * 0.38;
+    var baseline = h * 0.82;
+
+    var grad = vizCtx.createLinearGradient(0, h * 0.1, 0, h);
+    grad.addColorStop(0, '#f2d488');
+    grad.addColorStop(0.55, '#e6c069');
+    grad.addColorStop(1, '#a97c34');
+    vizCtx.fillStyle = grad;
+
+    for (var i = 0; i < n; i++){
+      var b = vizBars[i];
+      var wobbleA = Math.sin(t * b.speed + b.phase) * 0.5 + 0.5;
+      var wobbleB = Math.sin(t * b.speed * 1.9 + b.phase * 1.4) * 0.5 + 0.5;
+      var v = b.amp * (0.4 * wobbleA + 0.6 * wobbleB);
+      v = Math.max(0.06, Math.min(1, v));
+
+      var barH = v * baseline;
+      var x = i * (barW + gap);
+      vizCtx.globalAlpha = 0.55 + v * 0.45;
+      roundBar(vizCtx, x, baseline - barH, barW, barH, barW / 2);
+    }
+    vizCtx.globalAlpha = 1;
+  }
+  function stopViz(){
+    if (vizRAF){ cancelAnimationFrame(vizRAF); vizRAF = null; }
+    vizStart = null;
+  }
+
+  function attemptPlayMusic(){
+    song.currentTime = 0;
+    song.muted = false;
+
+    if (song.paused){
+      var p = song.play();
+      if (p && p.catch){
+        p.then(function(){ musicNote.textContent = ''; })
+         .catch(function(){
+           musicNote.textContent = 'Браузер заблокировал автозапуск — нажмите «Играть», чтобы включить звук.';
+         });
+      }
+    } else {
+      musicNote.textContent = '';
+    }
+  }
+
+  song.addEventListener('play', function(){ drawViz(); document.getElementById('toggleMusicBtn').textContent = 'Пауза'; });
+  song.addEventListener('pause', function(){ stopViz(); document.getElementById('toggleMusicBtn').textContent = 'Играть'; });
+
+  document.getElementById('toggleMusicBtn').addEventListener('click', function(){
+    if (song.paused || song.muted){ attemptPlayMusic(); } else { song.pause(); }
+  });
+
+  document.getElementById('playAgainBtn').addEventListener('click', function(){
+    overlay.classList.remove('show');
+    song.muted = true;
+    unlockAudio();
+    resetGame();
+  });
+
+  document.getElementById('shuffleBtn').addEventListener('click', function(){ resetGame(); });
+
+  document.getElementById('startBtn').addEventListener('click', function(){
+    document.querySelector('.game-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('introBtn').addEventListener('click', function(){
+    introOverlay.classList.remove('show');
+    unlockAudio();
+  });
+
+  function onSolved(){
+    solved = true;
+    stopTimer();
+    resultTime.textContent = formatTime(elapsed);
+    overlay.classList.add('show');
+    attemptPlayMusic();
+  }
+
+  function resetGame(){
+    solved = false;
+    started = false;
+    stopTimer();
+    elapsed = 0;
+    timerEl.textContent = '00:00';
+    progressFill.style.width = '0%';
+    buildPieces();
+    layoutPieces();
+  }
+
+  window.addEventListener('resize', layoutPieces);
+
+  buildPieces();
+  layoutPieces();
+  requestAnimationFrame(function(){ introOverlay.classList.add('show'); });
+})();
+</script>
+
+</body>
+</html>
